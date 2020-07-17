@@ -55,6 +55,7 @@ type Engine struct {
 	HTMLRender render.Render
 	FuncMap    template.FuncMap
 	delims     render.Delims
+	AutoRender bool //是否渲染模板
 
 	HandleMethodNotAllowed bool
 
@@ -82,6 +83,7 @@ func New() *Engine {
 		},
 		FuncMap:                template.FuncMap{},
 		delims:                 render.Delims{Left: "{{", Right: "}}"},
+		AutoRender:             false,
 		RedirectTrailingSlash:  true,
 		RedirectFixedPath:      false,
 		HandleMethodNotAllowed: false,
@@ -126,6 +128,12 @@ func (engine *Engine) Run(addr ...string) (err error) {
 	defer func() {
 		debugPrintError(err)
 	}()
+
+	if engine.AutoRender {
+		//builder template
+		err = render.BuildTemplate(engine.viewsPath, engine.FuncMap, engine.delims)
+	}
+
 	address := resolveAddress(addr)
 	if engine.RunMode == devMode {
 		debugPrint("[%s] Listening and serving HTTP on %s", engine.AppName, address)
@@ -134,11 +142,16 @@ func (engine *Engine) Run(addr ...string) (err error) {
 	return
 }
 
-//RunTLS
+// RunTLS
 func (engine *Engine) RunTLS(certFile, keyFile string, addr ...string) (err error) {
 	defer func() {
 		debugPrintError(err)
 	}()
+
+	if engine.AutoRender {
+		//builder template
+		err = render.BuildTemplate(engine.viewsPath, engine.FuncMap, engine.delims)
+	}
 	address := resolveAddress(addr)
 	if engine.RunMode == devMode {
 		debugPrint("[%s] Listening and serving HTTP on %s", engine.AppName, address)
@@ -147,32 +160,24 @@ func (engine *Engine) RunTLS(certFile, keyFile string, addr ...string) (err erro
 	return
 }
 
-//SetFuncMap set template func
-func (engine *Engine) SetFuncMap(funcMap template.FuncMap) {
-	engine.FuncMap = funcMap
+// AddFuncMap add fn func to template func map
+func (engine *Engine) AddFuncMap(key string, fn interface{}) {
+	engine.FuncMap[key] = fn
 }
 
-//Delims set Delims
+// Delims set Delims
 func (engine *Engine) Delims(left, right string) {
 	engine.delims = render.Delims{Left: left, Right: right}
 }
 
-// Views set views path
-func (engine *Engine) Views(path string) {
-	engine.viewsPath = path
-}
-
-// LoadHTMLGlob load html glob template
-func (engine *Engine) LoadHTMLGlob(path ...string) {
+// SetView set views path
+// 模板目录为 views 时，可不用设置此值
+func (engine *Engine) SetView(path ...string) {
 	dir := defaultViews
 	if len(path) > 0 {
 		dir = path[0]
 	}
-	engine.Views(dir)
-	err := render.BuildTemplate(dir, engine.FuncMap, engine.delims)
-	if err != nil {
-		panic(err)
-	}
+	engine.viewsPath = dir
 }
 
 // RoutesMap get all router map

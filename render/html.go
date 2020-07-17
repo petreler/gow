@@ -50,16 +50,20 @@ type HTMLRender struct {
 // internal template func
 // {{.title | str2html}}
 func init() {
-	templateFuncMap["str2html"] = func() {}
-	templateFuncMap["html2str"] = func() {}
-	templateFuncMap["dateformat"] = func() {}
-	templateFuncMap["date"] = func() {}
-	templateFuncMap["substr"] = func() {}
+	templateFuncMap["str2html"] = Str2html
+	templateFuncMap["html2str"] = HTML2str
+	templateFuncMap["date_time_format"] = DateTimeFormat
+	templateFuncMap["date"] = DateFormat
+	templateFuncMap["int_date_time_format"] = IntDateTimeFormat
+	templateFuncMap["int_date_time"] = IntDateTime
+	templateFuncMap["int_date"] = IntDate
+	templateFuncMap["substr"] = Substr
+	templateFuncMap["assets_js"] = AssetsJs
+	templateFuncMap["assets_css"] = AssetsCSS
 }
 
 func (r HTMLRender) Instance(name string, data interface{}) Render {
 	var buf bytes.Buffer
-
 	execViewPathTemplate(&buf, name, data)
 	return HTMLRender{
 		Template: viewPathTemplates[name],
@@ -129,7 +133,9 @@ func BuildTemplate(dir string, funcMap template.FuncMap, delims Delims, files ..
 		}
 		return errors.New("dir opens failed")
 	}
-	templateFuncMap = funcMap
+	for key, item := range funcMap {
+		templateFuncMap[key] = item
+	}
 	tff := &templateFile{
 		root:  dir,
 		files: make(map[string][]string),

@@ -116,9 +116,10 @@ r.LoadHTMLGlob("views")
 r.Static("/static", "static")
 ```
 
+##### 2.4 模板函数
 
 
-##### 2.4 演示代码
+##### 2.5 演示代码
 
 *main.go*
 
@@ -131,13 +132,20 @@ import (
 
 func main() {
     r := gow.Default()
-    r.LoadHTMLGlob("views") //默认静态目录为views时，此方法可以不写
+    r.SetView("views") //默认静态目录为views时，可不调用此方法
     r.StaticFile("favicon.ico","static/img/log.png")  //路由favicon.ico
     r.Static("/static", "static")
 
     //router
     r.Any("/", IndexHandler)
     r.Any("/article/1", ArticleDetailHandler)
+
+
+    //自定义hello的模板函数
+    //在模板文件可通过 {{hello .string}} 来执行
+    r.AddFuncMap("hello", func(str string) string {
+        return "hello:" + str
+    })
 
     r.Run()
 }
@@ -163,7 +171,7 @@ func ArticleDetailHandler (c *gow.Context){
 ``` sh
 <html>
 <head>
-    <title>gow</title>
+    <title>{{hello .name}}</title>
     <meta charset="utf-8"/>
 </head>
 <body>

@@ -104,10 +104,10 @@ PROJECT_NAME
 ├──main.go
 ```
 
-##### 2.2 载入模板目录
+##### 2.2 设置模板目录
 
 ```go
-r.LoadHTMLGlob("views")
+r.SetView("views")
 ```
 
 ##### 2.3 设置静态资源

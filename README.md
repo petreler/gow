@@ -132,6 +132,7 @@ import (
 
 func main() {
     r := gow.Default()
+    r.AutoRender = true //打开html模板渲染
     r.SetView("views") //默认静态目录为views时，可不调用此方法
     r.StaticFile("favicon.ico","static/img/log.png")  //路由favicon.ico
     r.Static("/static", "static")

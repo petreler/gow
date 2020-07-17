@@ -222,9 +222,133 @@ https://127.0.0.1:8080/article/1
 
 ---
 
-### 3. 路由详解
 
-##### 3.1 支持的HTTPMethod
+### 3. 获取值
+
+```go
+func GetUser(c *gow.Context){
+
+    //获取字串
+    c.GetString("key","default")
+
+    //获取int
+    c.GetInt("key",0)
+
+    //获取bool
+    c.GetBool("key",false)
+
+    //获取int64
+    c.GetInt64("key",-1)
+
+    //获取[]string
+    var ids []string
+    ids = c.GetStrings("ids")  
+
+    //其他方法
+    c.GetInt32()
+    c.GetInt16()
+    c.GetInt8()
+    ....
+}
+```
+
+**获取 request body，并反序列化到 struct**
+
+```go
+
+type User struct {
+    Nickname string `json:"nickname"`
+    QQ       string `json:"qq"`
+}
+
+func GetUser(c *Context){
+    user := new(User)
+    err := c.DecodeJSONBody(&user)
+    if err != nil {
+        //handler error
+    }
+
+    c.JSON(gow.H{
+        "user": user,
+    })   
+
+}
+
+```
+
+### 4. 输出值
+
+支持：json xml string html 等方式输出
+
+**JSON**
+
+```go
+func GetUser(c *Context){
+
+    //default http.StatusOK
+    c.JSON(gow.H{
+        "nickname":"gow",
+        "age":18,
+    })
+
+   //或者，指定 http.StatusCode
+    c.ServerJSON(200,gow.H{
+        "nickname":"gow",
+        "age":18,
+    })
+}
+
+```
+
+**XML**
+
+```go
+func GetUser(c *Context){
+
+    //default http.StatusOK
+    c.XML(gow.H{
+        "nickname":"gow",
+        "age":18,
+    })
+
+   //或者，指定 http.StatusCode
+    c.ServerXML(200,gow.H{
+        "nickname":"gow",
+        "age":18,
+    })
+}
+
+```
+
+**String**
+
+```go
+func GetUser(c *Context){
+
+    //default http.StatusOK
+    c.String("hello gow...")
+
+   //或者，指定 http.StatusCode
+    c.ServerString(200,"hello gow...")
+}
+
+```
+
+**File**
+
+
+```go
+func GetUser(c *Context){
+
+    //读取并输出
+    c.File("go.mod")
+}
+```
+
+---
+### 5. 路由详解
+
+##### 5.1 支持的HTTPMethod
 ```go
 HTTPMethod = map[string]bool{
     "GET":     true,
@@ -238,7 +362,7 @@ HTTPMethod = map[string]bool{
 }
 ```
 
-##### 3.2 使用方式
+##### 5.2 使用方式
 
 包括基本路由与分组
 
@@ -255,7 +379,7 @@ r.HEAD(path,handler)
 r.TRACE(path,handler)
 ```
 
-##### 3.3 路由参数
+##### 5.3 路由参数
 
 ```go
 r.Any("/article/:id", ArticleDetailHandler)
@@ -267,7 +391,8 @@ r.Any("/article/:id", ArticleDetailHandler)
 id:=c.Param("id")
 ```
 
-##### 3.4 路由分组
+
+##### 5.4 路由分组
 
 
 *main.go*

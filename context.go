@@ -408,7 +408,7 @@ func (c *Context) Redirect(statusCode int, url string) {
 
 //Download
 func (c *Context) Download(data []byte) {
-	c.SetHeader("Content-Type", "application/octet-stream; charset=UTF-8")
+	c.SetHeader("Content-Type", "application/octet-stream; charset=utf-8")
 	c.Status(200)
 	c.Writer.Write(data)
 }

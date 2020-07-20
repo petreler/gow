@@ -241,6 +241,9 @@ func GetUser(c *gow.Context){
     //获取int64
     c.GetInt64("key",-1)
 
+    //获取float
+    c.GetFloat("key",0)
+
     //获取[]string
     var ids []string
     ids = c.GetStrings("ids")  

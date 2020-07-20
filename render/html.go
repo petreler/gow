@@ -52,10 +52,10 @@ type HTMLRender struct {
 func init() {
 	templateFuncMap["str2html"] = Str2html
 	templateFuncMap["html2str"] = HTML2str
-	templateFuncMap["date_time_format"] = DateTimeFormat
+	templateFuncMap["datetimeformat"] = DateTimeFormat
 	templateFuncMap["date"] = DateFormat
-	templateFuncMap["int_date_time_format"] = IntDateTimeFormat
-	templateFuncMap["int_date_time"] = IntDateTime
+	templateFuncMap["int_datetimeformat"] = IntDateTimeFormat
+	templateFuncMap["int_datetime"] = IntDateTime
 	templateFuncMap["int_date"] = IntDate
 	templateFuncMap["substr"] = Substr
 	templateFuncMap["assets_js"] = AssetsJs

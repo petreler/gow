@@ -30,6 +30,8 @@ type RouterGroup struct {
 
 //Use use middleware
 func (group *RouterGroup) Use(middleware ...HandlerFunc) {
+	group.engine.rebuild404Handlers()
+	group.engine.rebuild405Handlers()
 	group.Handlers = append(group.Handlers, middleware...)
 }
 
@@ -42,11 +44,6 @@ func (group *RouterGroup) Group(path string, handlers ...HandlerFunc) *RouterGro
 	}
 }
 
-//NotFoundHandler set 404 not found handler
-func (group *RouterGroup) NotFoundHandler(handler HandlerFunc) {
-	group.engine.allNoRoute = append(group.engine.allNoRoute, handler)
-}
-
 //Handle Handle
 func (group *RouterGroup) Handle(method, p string, handlers []HandlerFunc) {
 	method = strings.ToUpper(method)
@@ -56,7 +53,6 @@ func (group *RouterGroup) Handle(method, p string, handlers []HandlerFunc) {
 	}
 	absolutePath := group.calculateAbsolutePath(p)
 	handlers = group.combineHandlers(handlers)
-
 	//handler any method
 	if method == "*" {
 		for val := range HTTPMethod {
@@ -131,6 +127,7 @@ func (group *RouterGroup) StaticFile(relativePath, filepath string) {
 // use:
 //		router.Static("/static","static")
 func (group *RouterGroup) Static(relativePath, root string) {
+	group.engine.staticPath = root
 	group.StaticFS(relativePath, Dir(root, false))
 }
 
@@ -141,7 +138,6 @@ func (group *RouterGroup) StaticFS(relativePath string, fs http.FileSystem) {
 	}
 	handler := group.createStaticHandler(relativePath, fs)
 	urlPattern := path.Join(relativePath, "/*filepath")
-
 	// Register GET and HEAD handlers
 	group.GET(urlPattern, handler)
 	group.HEAD(urlPattern, handler)
@@ -163,14 +159,13 @@ func (group *RouterGroup) createStaticHandler(relativePath string, fs http.FileS
 		f, err := fs.Open(file)
 		if err != nil {
 			c.Writer.WriteHeader(http.StatusNotFound)
-			c.handlers = group.engine.allNoRoute
+			c.handlers = group.engine.noRoute
 			// Reset index
-			c.index = -1
+			c.ServerString(404, string(default404Body))
 			return
 		}
+		c.Status(200)
 		f.Close()
-		//保证statusCode值正常
-		c.Status(http.StatusOK)
 		fileServer.ServeHTTP(c.Writer, c.Req)
 	}
 }

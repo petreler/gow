@@ -42,6 +42,7 @@ const (
 	devMode                = "dev"
 	prodMode               = "prod"
 	defaultViews           = "views"
+	defaultStatic          = "static"
 	defaultMultipartMemory = 32 << 20
 )
 
@@ -68,9 +69,13 @@ type Engine struct {
 
 	//views template directory
 	viewsPath   string
+	staticPath  string
+	httpAddr    string
 	trees       methodTrees
 	allNoRoute  HandlersChain
 	allNoMethod HandlersChain
+	noRoute     HandlersChain
+	noMethod    HandlersChain
 	pool        sync.Pool
 }
 
@@ -94,6 +99,8 @@ func New() *Engine {
 		MaxMultipartMemory:     defaultMultipartMemory,
 		trees:                  make(methodTrees, 0, 9),
 		viewsPath:              defaultViews,
+		staticPath:             defaultStatic,
+		httpAddr:               ":8080", //default http Addr
 		RunMode:                defaultMode,
 		AppPath:                getCurrentDirectory(),
 	}
@@ -123,6 +130,19 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	engine.pool.Put(c)
 }
 
+// SetAppConfig 统一配置入口
+// 可使用此方法统一配置，也可以使用其他方法单独设置
+func (engine *Engine) SetAppConfig(app *AppConfig) {
+	if app != nil {
+		engine.viewsPath = app.Views
+		engine.AppName = app.AppName
+		engine.RunMode = app.RunMode
+		engine.delims = render.Delims{Left: app.TemplateLeft, Right: app.TemplateRight}
+		engine.AutoRender = app.AutoRender
+		engine.httpAddr = app.HttpAddr
+	}
+}
+
 // Run
 func (engine *Engine) Run(addr ...string) (err error) {
 	defer func() {
@@ -134,10 +154,8 @@ func (engine *Engine) Run(addr ...string) (err error) {
 		err = render.BuildTemplate(engine.viewsPath, engine.FuncMap, engine.delims)
 	}
 
-	address := resolveAddress(addr)
-	if engine.RunMode == devMode {
-		debugPrint("[%s] Listening and serving HTTP on %s", engine.AppName, address)
-	}
+	address := engine.resolveAddress(addr)
+	debugPrint("[%s] [%s] Listening and serving HTTP on %s", engine.AppName, engine.RunMode, address)
 	err = http.ListenAndServe(address, engine)
 	return
 }
@@ -152,12 +170,30 @@ func (engine *Engine) RunTLS(certFile, keyFile string, addr ...string) (err erro
 		//builder template
 		err = render.BuildTemplate(engine.viewsPath, engine.FuncMap, engine.delims)
 	}
-	address := resolveAddress(addr)
-	if engine.RunMode == devMode {
-		debugPrint("[%s] Listening and serving HTTP on %s", engine.AppName, address)
-	}
+	address := engine.resolveAddress(addr)
+	debugPrint("[%s] [%s] Listening and serving HTTP on %s", engine.AppName, engine.RunMode, address)
 	err = http.ListenAndServeTLS(address, certFile, keyFile, engine)
 	return
+}
+
+// NoRoute adds handlers for NoRoute. It return a 404 code by default.
+func (engine *Engine) NoRoute(handlers ...HandlerFunc) {
+	engine.noRoute = handlers
+	engine.rebuild404Handlers()
+}
+
+// NoMethod sets the handlers called when... TODO.
+func (engine *Engine) NoMethod(handlers ...HandlerFunc) {
+	engine.noMethod = handlers
+	engine.rebuild405Handlers()
+}
+
+func (engine *Engine) rebuild404Handlers() {
+	engine.allNoRoute = engine.combineHandlers(engine.noRoute)
+}
+
+func (engine *Engine) rebuild405Handlers() {
+	engine.allNoMethod = engine.combineHandlers(engine.noMethod)
 }
 
 // AddFuncMap add fn func to template func map
@@ -236,7 +272,7 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 			c.Method = httpMethod
 			c.Path = rPath
 			c.Next()
-			c.Writer.WriteHeaderNow()
+			c.responseWriter.WriteHeaderNow()
 			return
 		}
 		if httpMethod != "CONNECT" && rPath != "/" {
@@ -322,24 +358,22 @@ func serveError(c *Context, code int, defaultMessage []byte) {
 		}
 		return
 	}
+	c.responseWriter.status = code
 	c.responseWriter.WriteHeaderNow()
-}
-
-func (engine *Engine) createContext(w http.ResponseWriter, req *http.Request, params Params, handlers []HandlerFunc) *Context {
-	ctx := engine.pool.Get().(*Context)
-	ctx.Writer = &ctx.responseWriter
-	ctx.Req = req
-	ctx.Keys = nil
-	ctx.Params = params
-	ctx.handlers = handlers
-	ctx.engine = engine
-	ctx.Path = req.RequestURI
-	ctx.Method = req.Method
-	ctx.index = -1
-	ctx.responseWriter.reset(w)
-	return ctx
 }
 
 func (engine *Engine) reuseContext(ctx *Context) {
 	engine.pool.Put(ctx)
+}
+
+// resolveAddress
+func (engine *Engine) resolveAddress(addr []string) string {
+	switch len(addr) {
+	case 0:
+		return engine.httpAddr
+	case 1:
+		return addr[0]
+	default:
+		panic("too many parameters")
+	}
 }

@@ -42,6 +42,7 @@ func (c *Context) reset() {
 	c.Params = c.Params[0:0]
 	c.handlers = nil
 	c.index = -1
+	c.fullPath = ""
 	c.Keys = nil
 }
 
@@ -403,6 +404,7 @@ func (c *Context) GetBool(key string, def ...bool) (bool, error) {
 // Redirect http redirect
 // like : 301 302 ...
 func (c *Context) Redirect(statusCode int, url string) {
+	c.Status(statusCode)
 	http.Redirect(c.Writer, c.Req, url, statusCode)
 }
 

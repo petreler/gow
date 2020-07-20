@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	defaultConf     = "conf/app.conf"
-	defaultDevCong  = "conf/dev.app.conf"
-	defaultProdConf = "conf/prod.app.conf"
+	defaultConfig     = "conf/app.conf"
+	defaultDevConfig  = "conf/dev.app.conf"
+	defaultProdConfig = "conf/prod.app.conf"
 )
 
 var (
@@ -19,20 +19,22 @@ var (
 
 // init load current configuration file
 func init() {
+
+	//根据环境变量使用不同的conf文件
 	runMode := os.Getenv("APP_RUN_MODE")
 	if runMode == "" {
-		fileName = defaultConf
+		fileName = defaultConfig
 	}
 
 	if runMode == "dev" {
-		fileName = defaultDevCong
+		fileName = defaultDevConfig
 	}
 	if runMode == "prod" {
-		fileName = defaultProdConf
+		fileName = defaultProdConfig
 	}
 
 	if fileName == "" {
-		fileName = defaultConf
+		fileName = defaultConfig
 	}
 
 	var err error

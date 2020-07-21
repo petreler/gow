@@ -128,7 +128,7 @@ func (group *RouterGroup) StaticFile(relativePath, filepath string) {
 //		router.Static("/static","static")
 func (group *RouterGroup) Static(relativePath, root string) {
 	group.engine.staticPath = root
-	group.StaticFS(relativePath, Dir(root, false))
+	group.StaticFS(relativePath, Dir(group.engine.staticPath, false))
 }
 
 //StaticFS

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	ini "github.com/go-ini/ini"
 	"os"
 	"strings"
@@ -40,7 +41,7 @@ func init() {
 	var err error
 	cfg, err = ini.InsensitiveLoad(fileName)
 	if err != nil {
-		panic("Failed to read configuration file")
+		panic(fmt.Sprintf("Failed to read configuration file：%s", fileName))
 	}
 
 }

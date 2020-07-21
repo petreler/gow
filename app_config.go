@@ -1,5 +1,7 @@
 package gow
 
+import "github.com/gkzy/gow/lib/config"
+
 // AppConfig gow 配置入口
 // 也可以通过此配置文件统一设置app的基础配置
 // 除此之外，也可以通过
@@ -15,4 +17,21 @@ type AppConfig struct {
 	Views         string //html 模板目录
 	TemplateLeft  string //html模板左符号
 	TemplateRight string //html模板右符号
+}
+
+// GetAppConfig 获取配置文件中的信息
+// 默认使用conf/app.conf配置文件
+//  当环境变量 APP_RUN_MODE ="prod"时，使用 conf/prod.app.conf
+//  当环境变量 APP_RUN_MODE ="dev"时，使用 conf/dev.app.conf
+//  没有此环境变量时，使用conf/app.conf
+func GetAppConfig() *AppConfig {
+	return &AppConfig{
+		AppName:       config.DefaultString("app_name", "gow"),
+		RunMode:       config.DefaultString("run_mode", "dev"),
+		HttpAddr:      config.DefaultString("http_addr", ":8080"),
+		AutoRender:    config.DefaultBool("auto_render", false),
+		Views:         config.DefaultString("views", "views"),
+		TemplateLeft:  config.DefaultString("template_left", "<<"),
+		TemplateRight: config.DefaultString("template_right", ">>"),
+	}
 }

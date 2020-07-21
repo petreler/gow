@@ -134,9 +134,10 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 // 可使用此方法统一配置，也可以使用其他方法单独设置
 func (engine *Engine) SetAppConfig(app *AppConfig) {
 	if app != nil {
-		engine.viewsPath = app.Views
+		debugPrint("[%s] Load the configuration using the SetAppConfig method", app.AppName)
 		engine.AppName = app.AppName
 		engine.RunMode = app.RunMode
+		engine.viewsPath = app.Views
 		engine.delims = render.Delims{Left: app.TemplateLeft, Right: app.TemplateRight}
 		engine.AutoRender = app.AutoRender
 		engine.httpAddr = app.HttpAddr

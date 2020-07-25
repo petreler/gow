@@ -415,7 +415,8 @@ func (c *Context) Download(data []byte) {
 	c.Writer.Write(data)
 }
 
-//GetCookie get request cookie
+// GetCookie get request cookie
+//		c.GetCookie("url")
 func (c *Context) GetCookie(key string) string {
 	ck, err := c.Req.Cookie(key)
 	if err != nil {
@@ -423,9 +424,11 @@ func (c *Context) GetCookie(key string) string {
 	}
 	val, _ := url.QueryUnescape(ck.Value)
 	return val
+
 }
 
-//SetCookie
+// SetCookie set cookie
+// 		c.SetCookie("url","22v.net",72*time.Hour,"",true,true)
 func (c *Context) SetCookie(key, value string, maxAge int, path, domain string, secure, httpOnly bool) {
 	if path == "" {
 		path = "/"
@@ -476,4 +479,19 @@ func (c *Context) SaveToFile(fromFile, toFile string) error {
 	defer f.Close()
 	io.Copy(f, file)
 	return nil
+}
+
+// URL  get request url
+func (c *Context) URL() string {
+	return c.Req.URL.String()
+}
+
+// Referer get request referer
+func (c *Context) Referer() string {
+	return c.Req.Referer()
+}
+
+// IsAjax return is ajax request
+func (c *Context) IsAjax() bool {
+	return c.GetHeader("X-Requested-With") == "XMLHttpRequest"
 }

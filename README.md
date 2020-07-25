@@ -3,17 +3,13 @@
 gow 是一个基于gin框架思想和beego框架中html模板处理机制，封装的一个go web框架。可用于开发Web API和Web网站项目。
 
 
-*项目地址：*
+### 项目地址：
 
-```
-github.com/gkzy/gow
-```
+[https://github.com/gkzy/gow](https://github.com/gkzy/gow)
 
-*官网地址：*
+### 官网地址：
 
-```
-https://gow.zituo.net （在建中...)
-```
+[https://gow.22v.net](https://gow.22v.net)
 
 
 

@@ -1,6 +1,7 @@
 package gow
 
 import (
+	"fmt"
 	"github.com/gkzy/gow/render"
 	"html/template"
 	"net/http"
@@ -156,6 +157,13 @@ func (engine *Engine) Run(addr ...string) (err error) {
 	}
 
 	address := engine.resolveAddress(addr)
+
+	if engine.RunMode == devMode {
+		fmt.Println(logo)
+		debugPrint("package: %s", pkg)
+		debugPrint("website: %s", site)
+	}
+
 	debugPrint("[%s] [%s] Listening and serving HTTP on %s", engine.AppName, engine.RunMode, address)
 	err = http.ListenAndServe(address, engine)
 	return
@@ -172,6 +180,11 @@ func (engine *Engine) RunTLS(certFile, keyFile string, addr ...string) (err erro
 		err = render.BuildTemplate(engine.viewsPath, engine.FuncMap, engine.delims)
 	}
 	address := engine.resolveAddress(addr)
+	if engine.RunMode == devMode {
+		fmt.Println(logo)
+		debugPrint("package: %s", pkg)
+		debugPrint("website: %s", site)
+	}
 	debugPrint("[%s] [%s] Listening and serving HTTP on %s", engine.AppName, engine.RunMode, address)
 	err = http.ListenAndServeTLS(address, certFile, keyFile, engine)
 	return

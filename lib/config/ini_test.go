@@ -13,6 +13,13 @@ func TestINI_GetKey(t *testing.T) {
 
 	fmt.Println(DefaultString("gkzy-user::user", "zituocn"))
 
-	strs := Keys("gkzy-user")
-	fmt.Println(strings.Join(strs, ","))
+	keys := Keys("gkzy-user")
+	fmt.Println(strings.Join(keys, ","))
+}
+
+// TestINI_File 指定文件
+func TestINI_File(t *testing.T){
+	InitLoad("conf/prod.app.conf")
+	fmt.Println(GetString("template_left"))
+	fmt.Println(GetString("template_right"))
 }

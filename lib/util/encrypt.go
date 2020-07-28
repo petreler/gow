@@ -21,7 +21,8 @@ func GetUUID() (string, error) {
 }
 
 //MD5 编码
-//32位长度的小写md5输出
+//	32位长度的小写md5输出
+//	MD5("123456)
 func MD5(str string) string {
 	m := md5.New()
 	io.WriteString(m, str)

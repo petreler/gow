@@ -13,6 +13,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 //Context gow context
@@ -28,6 +29,7 @@ type Context struct {
 	Params         Params
 	StatusCode     int
 
+	mu       sync.RWMutex
 	index    int8
 	engine   *Engine
 	fullPath string
@@ -93,7 +95,9 @@ func (c *Context) SetKey(key string, v interface{}) {
 	if c.Keys == nil {
 		c.Keys = make(map[string]interface{})
 	}
+	c.mu.Lock()
 	c.Keys[key] = v
+	c.mu.Unlock()
 }
 
 //GetKey
@@ -102,6 +106,7 @@ func (c *Context) GetKey(key string) interface{} {
 		ok bool
 		v  interface{}
 	)
+	c.mu.RLock()
 	if c.Keys != nil {
 		v, ok = c.Keys[key]
 	} else {
@@ -111,6 +116,7 @@ func (c *Context) GetKey(key string) interface{} {
 		//TODO: record logs:
 		//key %s does not exist
 	}
+	c.mu.RUnlock()
 	return v
 }
 

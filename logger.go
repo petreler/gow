@@ -7,6 +7,7 @@ import (
 
 // [gow] 2020/07/01 - 14:55:52 | 200 |      44.961µs |       127.0.0.1 | GET      "/article/1"
 // Logger
+//		print to console
 func Logger() HandlerFunc {
 	return func(c *Context) {
 		t := time.Now()

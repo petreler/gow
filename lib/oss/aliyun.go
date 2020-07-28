@@ -33,13 +33,16 @@ func (c *AliClient) NewAliClient(accessKeyId, secret, endPoint, bucketName, serv
 	}
 }
 
-//UploadPhoto 上传一个图片文件到aliyun oss
-func (c *AliClient) UploadPhoto(reader io.Reader, dir, suffix string) (url string, err error) {
-	if suffix == "" {
-		suffix = ".jpg"
+// Upload 上传文件
+//		url,err:=client.Upload(reader,dir,ext)
+
+func (c *AliClient) Upload(reader io.Reader, dir, ext string) (url string, err error) {
+	if ext == "" {
+		ext = ".jpg"
 	}
 	client, err := oss.New(c.EndPoint, c.AccessKeyId, c.Secret)
 	if err != nil {
+		err = fmt.Errorf("[client]init失败:%v", err)
 		return
 	}
 	bucket, err := client.Bucket(c.BucketName)
@@ -47,22 +50,22 @@ func (c *AliClient) UploadPhoto(reader io.Reader, dir, suffix string) (url strin
 		return
 	}
 	uuid, _ := util.GetUUID()
-	imgUrl := fmt.Sprintf("%s/%s/%s", dir, time.Now().Format("20060102"), uuid+suffix)
-	err = bucket.PutObject(imgUrl, reader)
+	filePath := fmt.Sprintf("%s/%s/%s", dir, time.Now().Format("20060102"), uuid+ext)
+	err = bucket.PutObject(filePath, reader)
 	if err != nil {
 		return
 	}
-	url = fmt.Sprintf("%s%s", c.ServerUrl, imgUrl)
+	url = fmt.Sprintf("%s%s", c.ServerUrl, filePath)
 	return
 }
 
-//UploadHttpPhoto 上传网络/远程图片到oss
-func (c *AliClient) UploadHttpPhoto(rUrl, dir string) (url string, err error) {
-	resp, err := http.Get(rUrl)
+// UploadRemoteFile 上传网络图片到oss
+func (c *AliClient) UploadRemoteFile(httpUrl, dir string) (url string, err error) {
+	resp, err := http.Get(httpUrl)
 	if err != nil {
+		err = fmt.Errorf("远程图片获取失败:%v", httpUrl)
 		return
 	}
 	defer resp.Body.Close()
-
-	return c.UploadPhoto(resp.Body, dir, "")
+	return c.Upload(resp.Body, dir, "")
 }

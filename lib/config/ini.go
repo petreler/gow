@@ -18,6 +18,17 @@ var (
 	fileName string
 )
 
+// InitLoad 读取指定的配置文件
+//	  config.InitLoad("conf/my.ini")
+//	  config.GetString("key")
+func InitLoad(fileName string) {
+	var err error
+	cfg, err = ini.Load(fileName)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to read configuration file：%s", fileName))
+	}
+}
+
 // init load current configuration file
 func init() {
 
@@ -46,7 +57,8 @@ func init() {
 
 }
 
-// DefaultString
+// DefaultString get default string
+//	 config.DefaultString("prov","四川")
 func DefaultString(key, def string) string {
 	if v := GetString(key); v != "" {
 		return v
@@ -54,12 +66,14 @@ func DefaultString(key, def string) string {
 	return def
 }
 
-// GetString
+// GetString get string
+//	 config.GetString("prov")
 func GetString(key string) string {
 	return getKey(key).String()
 }
 
-//DefaultInt DefaultInt
+//DefaultInt get default int
+//	config.DefaultInt("prov_id",1)
 func DefaultInt(key string, def int) int {
 	if v, err := GetInt(key); err == nil {
 		return v
@@ -67,6 +81,8 @@ func DefaultInt(key string, def int) int {
 	return def
 }
 
+// GetInt  get int
+//	config.GetInt("prov_id)
 func GetInt(key string) (int, error) {
 	return getKey(key).Int()
 }

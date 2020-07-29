@@ -23,7 +23,7 @@ func getPrefix(prefixOptions ...string) string {
 }
 
 // Register the standard HandlerFuncs from the net/http/pprof package with
-// the provided gin.Engine. prefixOptions is a optional. If not prefixOptions,
+// the provided gow.Engine. prefixOptions is a optional. If not prefixOptions,
 // the default path prefix is used, otherwise first prefixOptions will be path prefix.
 func Register(r *gow.Engine, prefixOptions ...string) {
 	RouteRegister(r.RouterGroup, prefixOptions...)

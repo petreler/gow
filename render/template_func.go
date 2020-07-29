@@ -26,6 +26,7 @@ func Substr(s string, start, length int) string {
 	return string(bt[start:end])
 }
 
+// Str2html str2 to html code
 func Str2html(str string) template.HTML {
 	return template.HTML(str)
 }

@@ -63,7 +63,12 @@ func (c *Context) HandlerName() string {
 
 //Abort abort http response
 func (c *Context) AbortCode(statusCode int) {
-	c.Writer.WriteHeader(statusCode)
+	c.Status(statusCode)
+	c.index = abortIndex
+}
+
+// StopRun stop run
+func (c *Context) StopRun() {
 	c.index = abortIndex
 }
 

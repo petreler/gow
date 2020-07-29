@@ -207,7 +207,7 @@ func (c *Client) GetJSAPIConfig(ticket, url string) (data *JSWXConfig, err error
 }
 
 //GetPayConfig 获取公众号支付时的参数
-//传入payParam为支付下单接口返回的信息
+//		传入payParam为支付下单接口返回的信息
 func (c *Client) GetPayConfig(payParam string) (payConfig *PayConfig, err error) {
 	if payParam == "" {
 		err = fmt.Errorf("[wechat]payParam为空")

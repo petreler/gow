@@ -78,6 +78,9 @@ type Engine struct {
 	noRoute     HandlersChain
 	noMethod    HandlersChain
 	pool        sync.Pool
+
+	// session switch
+	SessionOn bool
 }
 
 func New() *Engine {
@@ -188,6 +191,11 @@ func (engine *Engine) RunTLS(certFile, keyFile string, addr ...string) (err erro
 	debugPrint("[%s] [%s] Listening and serving HTTP on %s", engine.AppName, engine.RunMode, address)
 	err = http.ListenAndServeTLS(address, certFile, keyFile, engine)
 	return
+}
+
+// SetSessionOn SetSessionOn
+func (engine *Engine) SetSessionOn(on bool) {
+	engine.SessionOn = on
 }
 
 // NoRoute adds handlers for NoRoute. It return a 404 code by default.

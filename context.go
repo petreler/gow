@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"fmt"
 )
 
 //Context gow context
@@ -222,7 +223,7 @@ func (c *Context) HTML(name string, data interface{}) {
 	c.ServerHTML(http.StatusOK, name, data)
 }
 
-//DecodeJSONBody
+// DecodeJSONBody json decoder request.Body to v
 func (c *Context) DecodeJSONBody(v interface{}) error {
 	decoder := json.NewDecoder(c.Req.Body)
 	if err := decoder.Decode(&v); err != nil {
@@ -241,12 +242,12 @@ func (c *Context) RequestBody() []byte {
 	return b
 }
 
-//Param Param
+// Param get Param by name
 func (c *Context) Param(name string) string {
 	return c.Params.ByName(name)
 }
 
-//UserAgent
+// UserAgent get useragent
 func (c *Context) UserAgent() string {
 	return c.GetHeader("User-Agent")
 }
@@ -316,6 +317,7 @@ func (c *Context) GetInt(key string, def ...int) (int, error) {
 }
 
 //GetInt8 GetInt8
+//	-128~127
 func (c *Context) GetInt8(key string, def ...int8) (int8, error) {
 	v := c.formValue(key)
 	if len(v) == 0 && len(def) > 0 {
@@ -326,6 +328,7 @@ func (c *Context) GetInt8(key string, def ...int8) (int8, error) {
 }
 
 //GetUint8 GetUint8
+//	0~255
 func (c *Context) GetUint8(key string, def ...uint8) (uint8, error) {
 	v := c.formValue(key)
 	if len(v) == 0 && len(def) > 0 {
@@ -336,6 +339,7 @@ func (c *Context) GetUint8(key string, def ...uint8) (uint8, error) {
 }
 
 //GetInt16 GetInt16
+//	-32768~32767
 func (c *Context) GetInt16(key string, def ...int16) (int16, error) {
 	v := c.formValue(key)
 	if len(v) == 0 && len(def) > 0 {
@@ -346,6 +350,7 @@ func (c *Context) GetInt16(key string, def ...int16) (int16, error) {
 }
 
 //GetUint8 GetUint8
+//	0~65535
 func (c *Context) GetUint16(key string, def ...uint16) (uint16, error) {
 	v := c.formValue(key)
 	if len(v) == 0 && len(def) > 0 {
@@ -356,6 +361,7 @@ func (c *Context) GetUint16(key string, def ...uint16) (uint16, error) {
 }
 
 //GetInt32 GetInt32
+//	-2147483648~2147483647
 func (c *Context) GetInt32(key string, def ...int32) (int32, error) {
 	v := c.formValue(key)
 	if len(v) == 0 && len(def) > 0 {
@@ -366,6 +372,7 @@ func (c *Context) GetInt32(key string, def ...int32) (int32, error) {
 }
 
 //GetUint32 GetUint32
+//	0~4294967295
 func (c *Context) GetUint32(key string, def ...uint32) (uint32, error) {
 	v := c.formValue(key)
 	if len(v) == 0 && len(def) > 0 {
@@ -376,6 +383,7 @@ func (c *Context) GetUint32(key string, def ...uint32) (uint32, error) {
 }
 
 //GetInt64 GetInt64
+//	-9223372036854775808~9223372036854775807
 func (c *Context) GetInt64(key string, def ...int64) (int64, error) {
 	v := c.formValue(key)
 	if len(v) == 0 && len(def) > 0 {
@@ -385,6 +393,7 @@ func (c *Context) GetInt64(key string, def ...int64) (int64, error) {
 }
 
 //GetUint64 GetUint64
+//	0~18446744073709551615
 func (c *Context) GetUint64(key string, def ...uint64) (uint64, error) {
 	v := c.formValue(key)
 	if len(v) == 0 && len(def) > 0 {
@@ -419,7 +428,7 @@ func (c *Context) Redirect(statusCode int, url string) {
 	http.Redirect(c.Writer, c.Req, url, statusCode)
 }
 
-//Download
+//Download	data to download
 func (c *Context) Download(data []byte) {
 	c.SetHeader("Content-Type", "application/octet-stream; charset=utf-8")
 	c.Status(200)
@@ -439,7 +448,7 @@ func (c *Context) GetCookie(key string) string {
 }
 
 // SetCookie set cookie
-// 		c.SetCookie("url","22v.net",72*time.Hour,"",true,true)
+// 		c.SetCookie("url","https://gow.22v.net",72*time.Hour,"",true,true)
 func (c *Context) SetCookie(key, value string, maxAge int, path, domain string, secure, httpOnly bool) {
 	if path == "" {
 		path = "/"
@@ -464,6 +473,11 @@ func (c *Context) File(filePath string) {
 
 //GetFile get single from form
 func (c *Context) GetFile(key string) (multipart.File, *multipart.FileHeader, error) {
+	if c.Req.MultipartForm == nil {
+		if err := c.Req.ParseMultipartForm(c.engine.MaxMultipartMemory); err != nil {
+			return nil, nil, err
+		}
+	}
 	return c.Req.FormFile(key)
 }
 
@@ -476,14 +490,15 @@ func (c *Context) GetFiles(key string) ([]*multipart.FileHeader, error) {
 }
 
 // SaveToFile saves uploaded file to new path.
-// on server
+// 		Upload the file and save it on the server
+//		c.SaveToFile("file","./upload/1.jpg")
 func (c *Context) SaveToFile(fromFile, toFile string) error {
 	file, _, err := c.Req.FormFile(fromFile)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-	f, err := os.OpenFile(toFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	f, err := os.OpenFile(toFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
@@ -505,4 +520,70 @@ func (c *Context) Referer() string {
 // IsAjax return is ajax request
 func (c *Context) IsAjax() bool {
 	return c.GetHeader("X-Requested-With") == "XMLHttpRequest"
+}
+
+// IsWebsocket return is websocket request
+func (c *Context) IsWebsocket() bool {
+	if strings.Contains(strings.ToLower(c.GetHeader("Connection")), "upgrade") &&
+		strings.EqualFold(c.GetHeader("Upgrade"), "websocket") {
+		return true
+	}
+	return false
+}
+
+//================== memory session ======================
+
+// SetSession
+func (c *Context) SetSession(key string, v interface{}) {
+	setSession(key, v)
+}
+
+// GetSession  return interface{}
+func (c *Context) GetSession(key string) interface{} {
+	return getSession(key)
+}
+
+//GetSessionString GetSessionString
+//	return string
+func (c *Context) GetSessionString(key string) string {
+	ret := c.GetSession(key)
+	v, ok := ret.(string)
+	if ok {
+		return v
+	}
+	return ""
+}
+
+// GetSessionInt return int
+//		default 0
+func (c *Context) GetSessionInt(key string) int {
+	v := c.GetSessionInt64(key)
+	return int(v)
+}
+
+// GetSessionInt64 return int64
+//		default 0
+func (c *Context) GetSessionInt64(key string) int64 {
+	ret := c.GetSession(key)
+	v, err := strconv.ParseInt(fmt.Sprintf("%v", ret), 10, 64)
+	if err != nil {
+		return 0
+	}
+	return v
+}
+
+// GetSessionBool return bool
+//		default false
+func (c *Context) GetSessionBool(key string) bool {
+	ret := c.GetSession(key)
+	v, ok := ret.(bool)
+	if ok {
+		return v
+	}
+	return false
+}
+
+// DeleteSession delete session key
+func (c *Context) DeleteSession(key string) {
+	deleteSession(key)
 }

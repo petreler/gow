@@ -16,7 +16,7 @@ func InitLoad(fileName string) {
 	var err error
 	cfg, err = ini.Load(fileName)
 	if err != nil {
-		panic("Failed to read configuration file：" + fileName))
+		panic("Failed to read configuration file：" + fileName)
 	}
 }
 

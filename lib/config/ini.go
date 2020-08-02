@@ -1,21 +1,12 @@
 package config
 
 import (
-	"fmt"
 	ini "github.com/go-ini/ini"
-	"os"
 	"strings"
 )
 
-const (
-	defaultConfig     = "conf/app.conf"
-	defaultDevConfig  = "conf/dev.app.conf"
-	defaultProdConfig = "conf/prod.app.conf"
-)
-
 var (
-	cfg      = ini.Empty()
-	fileName string
+	cfg = ini.Empty()
 )
 
 // InitLoad 读取指定的配置文件
@@ -25,36 +16,8 @@ func InitLoad(fileName string) {
 	var err error
 	cfg, err = ini.Load(fileName)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to read configuration file：%s", fileName))
+		panic("Failed to read configuration file：" + fileName))
 	}
-}
-
-// init load current configuration file
-func init() {
-
-	//根据环境变量使用不同的conf文件
-	runMode := os.Getenv("APP_RUN_MODE")
-	if runMode == "" {
-		fileName = defaultConfig
-	}
-
-	if runMode == "dev" {
-		fileName = defaultDevConfig
-	}
-	if runMode == "prod" {
-		fileName = defaultProdConfig
-	}
-
-	if fileName == "" {
-		fileName = defaultConfig
-	}
-
-	var err error
-	cfg, err = ini.InsensitiveLoad(fileName)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to read configuration file：%s", fileName))
-	}
-
 }
 
 // DefaultString get default string

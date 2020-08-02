@@ -1,6 +1,19 @@
 package gow
 
-import "github.com/gkzy/gow/lib/config"
+import (
+	"github.com/gkzy/gow/lib/config"
+	"os"
+)
+
+const (
+	defaultConfig     = "conf/app.conf"
+	defaultDevConfig  = "conf/dev.app.conf"
+	defaultProdConfig = "conf/prod.app.conf"
+)
+
+var (
+	fileName string
+)
 
 // AppConfig gow 配置入口
 // 也可以通过此配置文件统一设置app的基础配置
@@ -25,6 +38,25 @@ type AppConfig struct {
 //  当环境变量 APP_RUN_MODE ="dev"时，使用 conf/dev.app.conf
 //  没有此环境变量时，使用conf/app.conf
 func GetAppConfig() *AppConfig {
+	//根据环境变量使用不同的conf文件
+	runMode := os.Getenv("APP_RUN_MODE")
+	if runMode == "" {
+		fileName = defaultConfig
+	}
+
+	if runMode == "dev" {
+		fileName = defaultDevConfig
+	}
+	if runMode == "prod" {
+		fileName = defaultProdConfig
+	}
+
+	if fileName == "" {
+		fileName = defaultConfig
+	}
+
+	config.InitLoad(fileName)
+
 	return &AppConfig{
 		AppName:       config.DefaultString("app_name", "gow"),
 		RunMode:       config.DefaultString("run_mode", "dev"),

@@ -1,6 +1,5 @@
 package gow
 
-
 import (
 	"net/url"
 	"strings"
@@ -418,9 +417,12 @@ type nodeValue struct {
 // given path.
 func (n *node) getValue(path string, po Params, unescape bool) (value nodeValue) {
 	value.params = po
+	//ignore case
+	path = strings.ToLower(path)
 walk: // Outer loop for walking the tree
 	for {
-		prefix := n.path
+		//ignore case
+		prefix := strings.ToLower(n.path)
 		if path == prefix {
 			// We should have reached the node containing the handle.
 			// Check if this node has a handle registered.

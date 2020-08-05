@@ -6,11 +6,12 @@ import (
 	"html/template"
 	"net/http"
 	"path"
+	"strings"
 	"sync"
 )
 
 var (
-	default404Body = []byte("404 page not found")
+	default404Body = []byte("error request or method")
 	default405Body = []byte("405 method not allowed")
 )
 
@@ -204,7 +205,8 @@ func (engine *Engine) NoRoute(handlers ...HandlerFunc) {
 	engine.rebuild404Handlers()
 }
 
-// NoMethod sets the handlers called when... TODO.
+// NoMethod sets the handlers called when...
+// TODO:
 func (engine *Engine) NoMethod(handlers ...HandlerFunc) {
 	engine.noMethod = handlers
 	engine.rebuild405Handlers()
@@ -290,7 +292,7 @@ func (engine *Engine) handleHTTPRequest(c *Context) {
 		if value.handlers != nil {
 			c.handlers = value.handlers
 			c.Params = value.params
-			c.fullPath = value.fullPath
+			c.fullPath = strings.ToLower(value.fullPath)
 			c.Method = httpMethod
 			c.Path = rPath
 			c.Next()

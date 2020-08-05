@@ -3,6 +3,7 @@ package gow
 import (
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"github.com/gkzy/gow/render"
 	"io"
 	"io/ioutil"
@@ -14,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"fmt"
 )
 
 //Context gow context
@@ -219,8 +219,12 @@ func (c *Context) ServerHTML(statusCode int, name string, data interface{}) {
 }
 
 //HTML
-func (c *Context) HTML(name string, data interface{}) {
-	c.ServerHTML(http.StatusOK, name, data)
+func (c *Context) HTML(name string, data ...interface{}) {
+	var v interface{}
+	if len(data) > 0 {
+		v = data[0]
+	}
+	c.ServerHTML(http.StatusOK, name, v)
 }
 
 // DecodeJSONBody json decoder request.Body to v

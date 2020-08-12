@@ -5,9 +5,18 @@ import (
 	"os"
 )
 
+// DebugPrintError
 func DebugPrintError(err error) {
 	debugPrintError(err)
 }
+
+// DebugPrint
+func DebugPrint(format string, v ...interface{}) {
+	debugPrint(format, v)
+}
+
+
+//==============private=================
 
 // debugPrintError
 func debugPrintError(err error) {

@@ -1,6 +1,7 @@
 package logy
 
 import (
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
@@ -26,18 +27,22 @@ const (
 )
 
 var (
-	//formats 文件格式map
+	// formats 文件格式map
 	formats = map[ByType]string{
-		Day:   "2006-01-12",
+		Day:   "2006-01-02",
 		Hour:  "2006-01-02-15",
 		Month: "2006-01",
 	}
+	// defaultMaxDay  日志文件默认的留存天数
+	defaultMaxDay = 30
 )
 
+// FileOptions 写文件选项
 type FileOptions struct {
-	Dir    string
-	ByType ByType
-	Loc    *time.Location
+	Dir    string         //日志目录
+	ByType ByType         //按天/小时/月?
+	Loc    *time.Location //时间
+	MaxDay int            //最大留存天数
 }
 
 type Files struct {
@@ -51,13 +56,19 @@ type Files struct {
 // 	w:=logy.NewFileWriter(logy.FileOptions{
 //		ByType:log.Day,
 //		Dir:"./logs",
+//		MaxDay:6,
 //	})
 //  logy.Std.SetOutPut(w)
 func NewFileWriter(opts ...FileOptions) *Files {
 	opt := prepareFileOption(opts)
-	return &Files{
+	file := &Files{
 		FileOptions: opt,
 	}
+	// init clear log
+	file.clearLog()
+	// timer clear
+	go file.startTimer()
+	return file
 }
 
 func (f *Files) getFile() (*os.File, error) {
@@ -96,6 +107,7 @@ func (f *Files) Close() {
 	f.lastFormat = ""
 }
 
+// prepareFileOption 预处理文件选项
 func prepareFileOption(opts []FileOptions) FileOptions {
 	var opt FileOptions
 	if len(opts) > 0 {
@@ -108,9 +120,84 @@ func prepareFileOption(opts []FileOptions) FileOptions {
 	if err != nil {
 		panic(err.Error())
 	}
-
+	if opt.MaxDay == 0 {
+		opt.MaxDay = defaultMaxDay
+	}
 	if opt.Loc == nil {
 		opt.Loc = time.Local
 	}
 	return opt
+}
+
+//============private===========
+
+// clearLog 清理掉过期的日志文件
+// TODO:
+func (f *Files) clearLog() {
+	files := getDirFiles(f.Dir)
+	now := time.Now()
+	for _, item := range files {
+		modTime := item.ModTime
+		if modTime.Add(time.Hour * 24 * time.Duration(f.MaxDay-1)).Before(now) {
+			os.Remove(item.Name)
+		}
+	}
+}
+
+// startTimer start time ticker
+func (f *Files) startTimer() {
+	now := time.Now()
+	next := now.Add(time.Second * 3600)
+	second := time.Duration(next.Sub(now).Seconds())
+	f.timer(second)
+}
+
+// timer
+func (f *Files) timer(seconds time.Duration) {
+	timer := time.NewTicker(seconds * time.Second)
+	for {
+		select {
+		case <-timer.C:
+			{
+				f.clearLog()
+				nextTimer := time.NewTicker(3600 * time.Second)
+				for {
+					select {
+					case <-nextTimer.C:
+						{
+							f.startTimer()
+							return
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+// FileInfo
+type FileInfo struct {
+	Name    string
+	ModTime time.Time
+	Size    int64
+}
+
+// getDirFiles
+func getDirFiles(path string) (files []*FileInfo) {
+	dir, err := ioutil.ReadDir(path)
+	if err != nil {
+		return
+	}
+	files = make([]*FileInfo, 0)
+	for _, fi := range dir {
+		if !fi.IsDir() {
+			files = append(files, &FileInfo{
+				Name:    fi.Name(),
+				ModTime: fi.ModTime(),
+				Size:    fi.Size(),
+			})
+		}
+	}
+
+	return
 }

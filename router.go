@@ -30,8 +30,6 @@ type RouterGroup struct {
 
 //Use use middleware
 func (group *RouterGroup) Use(middleware ...HandlerFunc) {
-	group.engine.rebuild404Handlers()
-	group.engine.rebuild405Handlers()
 	group.Handlers = append(group.Handlers, middleware...)
 }
 

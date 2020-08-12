@@ -51,9 +51,9 @@ func (c *Context) reset() {
 
 func (c *Context) Next() {
 	c.index++
-	s := int8(len(c.handlers))
-	for ; c.index < s; c.index++ {
+	for c.index < int8(len(c.handlers)) {
 		c.handlers[c.index](c)
+		c.index++
 	}
 }
 
@@ -65,7 +65,8 @@ func (c *Context) HandlerName() string {
 //Abort abort http response
 func (c *Context) AbortCode(statusCode int) {
 	c.Status(statusCode)
-	c.index = abortIndex
+	c.Writer.WriteHeaderNow()
+	c.Abort()
 }
 
 // StopRun stop run

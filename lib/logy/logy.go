@@ -100,7 +100,7 @@ func SetColors(cls []int) {
 	colors = cls
 }
 
-//Logger
+// Logger
 type Logger struct {
 	mu         sync.Mutex
 	prefix     string
@@ -112,6 +112,7 @@ type Logger struct {
 	loc        *time.Location
 }
 
+// New return *Logger
 func New(out io.Writer, prefix string, flag int) *Logger {
 	log := &Logger{
 		out:    out,

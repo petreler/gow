@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	default404Body = []byte("error request or method")
+	default404Body = []byte("404 page not found")
 	default405Body = []byte("405 method not allowed")
 )
 
@@ -118,11 +118,21 @@ func New() *Engine {
 	return engine
 }
 
+// Default get default engine
+//	use Recovery()
+//	use Logger()
 func Default() *Engine {
 	engine := New()
 	engine.Use(Recovery())
 	engine.Use(Logger())
 	return engine
+}
+
+//Use use middleware
+func (engine *Engine) Use(middleware ...HandlerFunc) {
+	engine.RouterGroup.Use(middleware...)
+	engine.engine.rebuild404Handlers()
+	engine.engine.rebuild405Handlers()
 }
 
 // ServeHTTP implement the http.handler interface
@@ -382,7 +392,6 @@ func serveError(c *Context, code int, defaultMessage []byte) {
 		}
 		return
 	}
-	c.responseWriter.status = code
 	c.responseWriter.WriteHeaderNow()
 }
 

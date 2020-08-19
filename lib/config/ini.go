@@ -2,12 +2,44 @@ package config
 
 import (
 	ini "github.com/go-ini/ini"
+	"os"
 	"strings"
 )
 
 var (
 	cfg = ini.Empty()
 )
+
+const (
+	defaultConfig     = "conf/app.conf"
+	defaultDevConfig  = "conf/dev.app.conf"
+	defaultProdConfig = "conf/prod.app.conf"
+)
+
+func init() {
+
+	var fileName string
+
+	//根据环境变量使用不同的conf文件
+	runMode := os.Getenv("APP_RUN_MODE")
+	if runMode == "" {
+		fileName = defaultConfig
+	}
+
+	if runMode == "dev" {
+		fileName = defaultDevConfig
+	}
+	if runMode == "prod" {
+		fileName = defaultProdConfig
+	}
+
+	if fileName == "" {
+		fileName = defaultConfig
+	}
+
+	InitLoad(fileName)
+
+}
 
 // InitLoad 读取指定的配置文件
 //	  config.InitLoad("conf/my.ini")

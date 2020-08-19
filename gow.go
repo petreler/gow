@@ -167,7 +167,7 @@ func (engine *Engine) Run(addr ...string) (err error) {
 
 	if engine.AutoRender {
 		//builder template
-		err = render.BuildTemplate(engine.viewsPath, engine.FuncMap, engine.delims)
+		err = render.AddViewPath(engine.viewsPath)
 	}
 
 	address := engine.resolveAddress(addr)
@@ -191,7 +191,7 @@ func (engine *Engine) RunTLS(certFile, keyFile string, addr ...string) (err erro
 
 	if engine.AutoRender {
 		//builder template
-		err = render.BuildTemplate(engine.viewsPath, engine.FuncMap, engine.delims)
+		err = render.AddViewPath(engine.viewsPath)
 	}
 	address := engine.resolveAddress(addr)
 	if engine.RunMode == devMode {

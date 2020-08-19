@@ -205,14 +205,14 @@ func (c *Context) ServerHTML(statusCode int, name string, data interface{}) {
 		c.ServerString(404, string(default404Body))
 		return
 	}
-	c.SetHeader("Content-Type", "text/html; charset=utf-8")
 	c.Status(statusCode)
 
 	//if dev mode reBuilder template
 	if c.engine.RunMode == devMode {
-		render.BuildTemplate(c.engine.viewsPath, c.engine.FuncMap, c.engine.delims)
+		files := []string{name}
+		render.BuildTemplate(c.engine.viewsPath, files...)
 	}
-	c.engine.HTMLRender = render.HTMLRender{}.Instance(name, data)
+	c.engine.HTMLRender = render.HTMLRender{}.Instance(c.engine.viewsPath, name, c.engine.FuncMap, c.engine.delims, c.engine.AutoRender, c.engine.RunMode, data)
 	err := c.engine.HTMLRender.Render(c.Writer)
 	if err != nil {
 		c.Fail(http.StatusServiceUnavailable, err.Error())

@@ -5,14 +5,10 @@ import "net/http"
 // Render interface is to be implemented by JSON, XML, HTML, YAML and so on.
 type Render interface {
 	// Render writes data with custom ContentType.
-	Render(http.ResponseWriter) error
-	// WriteContentType writes custom ContentType.
+	Render(w http.ResponseWriter) error
+
 	WriteContentType(w http.ResponseWriter)
-
-	Instance(name string, data interface{}) Render
 }
-
-
 
 func writeContentType(w http.ResponseWriter, value []string) {
 	header := w.Header()

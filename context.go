@@ -29,6 +29,8 @@ type Context struct {
 	IP             string //方便外部其他方法设置IP
 	Params         Params
 	StatusCode     int
+	// Data html template data map
+	Data           map[interface{}]interface{}
 
 	mu       sync.RWMutex
 	index    int8
@@ -47,6 +49,7 @@ func (c *Context) reset() {
 	c.index = -1
 	c.fullPath = ""
 	c.Keys = nil
+	c.Data = nil
 }
 
 func (c *Context) Next() {
@@ -199,27 +202,23 @@ func (c *Context) XML(data interface{}) {
 }
 
 // ServerHTML ServerHTML
-func (c *Context) ServerHTML(statusCode int, name string, data interface{}) {
+func (c *Context) ServerHTML(statusCode int, name string) {
 	//未设置 AutoRender时，不渲染模板
 	if !c.engine.AutoRender {
 		c.ServerString(404, string(default404Body))
 		return
 	}
 	c.Status(statusCode)
-	c.engine.HTMLRender = render.HTMLRender{}.Instance(c.engine.viewsPath, name, c.engine.FuncMap, c.engine.delims, c.engine.AutoRender, c.engine.RunMode, data)
+	c.engine.HTMLRender = render.HTMLRender{}.Instance(c.engine.viewsPath, name, c.engine.FuncMap, c.engine.delims, c.engine.AutoRender, c.engine.RunMode, c.Data)
 	err := c.engine.HTMLRender.Render(c.Writer)
 	if err != nil {
 		c.Fail(http.StatusServiceUnavailable, err.Error())
 	}
 }
 
-//HTML
-func (c *Context) HTML(name string, data ...interface{}) {
-	var v interface{}
-	if len(data) > 0 {
-		v = data[0]
-	}
-	c.ServerHTML(http.StatusOK, name, v)
+// HTML
+func (c *Context) HTML(name string) {
+	c.ServerHTML(http.StatusOK, name)
 }
 
 // DecodeJSONBody json decoder request.Body to v

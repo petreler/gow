@@ -141,6 +141,7 @@ func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	c.responseWriter.reset(w)
 	c.Req = req
 	c.reset()
+	c.Data = make(map[interface{}]interface{},0)
 	engine.handleHTTPRequest(c)
 	engine.pool.Put(c)
 }

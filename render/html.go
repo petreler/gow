@@ -7,10 +7,10 @@ package render
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"html/template"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -70,6 +70,7 @@ func (m HTMLRender) Instance(dir, name string, funcMap template.FuncMap, delims 
 		Delims:     delims,
 		RunMode:    runMode,
 	}
+	defaultDelims = render.Delims
 	for key, item := range funcMap {
 		templateFuncMap[key] = item
 	}
@@ -103,11 +104,18 @@ func (m HTMLRender) renderBytes() ([]byte, error) {
 // renderTemplate
 func (m HTMLRender) renderTemplate() (bytes.Buffer, error) {
 	var buf bytes.Buffer
+	if m.RunMode == "dev" {
+		files := []string{m.Name}
+		BuildTemplate(m.ViewPath, files...)
+	}
 	return buf, ExecuteTemplate(&buf, m.Name, m.ViewPath, m.RunMode, m.Data)
 }
 
 // AddViewPath AddViewPath
 func AddViewPath(viewPath string) error {
+	if _, exist := beeViewPathTemplates[viewPath]; exist {
+		return nil
+	}
 	beeViewPathTemplates[viewPath] = make(map[string]*template.Template)
 	return BuildTemplate(viewPath)
 }
@@ -139,26 +147,13 @@ func ExecuteViewPathTemplate(wr io.Writer, name string, viewPath string, runMode
 				err = t.Execute(wr, data)
 			}
 			if err != nil {
-				fmt.Printf("template Execute err: %v", err)
+				log.Printf("template Execute err: %v\n", err)
 			}
 			return err
 		}
-		panic("can't find templatefile in the path:" + viewPath + "/" + name)
+		panic("can't find template file in the path:" + viewPath + "/" + name)
 	}
 	panic("Unknown view path:" + viewPath)
-}
-
-func init() {
-	templateFuncMap["str2html"] = Str2html
-	templateFuncMap["html2str"] = HTML2str
-	templateFuncMap["datetimeformat"] = DateTimeFormat
-	templateFuncMap["date"] = DateFormat
-	templateFuncMap["int_datetimeformat"] = IntDateTimeFormat
-	templateFuncMap["int_datetime"] = IntDateTime
-	templateFuncMap["int_date"] = IntDate
-	templateFuncMap["substr"] = Substr
-	templateFuncMap["assets_js"] = AssetsJs
-	templateFuncMap["assets_css"] = AssetsCSS
 }
 
 // AddFuncMap let user to register a func in the template.
@@ -220,7 +215,6 @@ func AddTemplateExt(ext string) {
 // BuildTemplate will build all template files in a directory.
 // it makes beego can render any template file in view directory.
 func BuildTemplate(dir string, files ...string) error {
-	beeViewPathTemplates[dir] = make(map[string]*template.Template)
 	var err error
 	fs := beeTemplateFS()
 	f, err := fs.Open(dir)
@@ -245,7 +239,7 @@ func BuildTemplate(dir string, files ...string) error {
 		return self.visit(path, f, err)
 	})
 	if err != nil {
-		fmt.Printf("Walk() returned %v\n", err)
+		log.Printf("Walk() returned %v\n", err)
 		return err
 	}
 	buildAllFiles := len(files) == 0
@@ -263,7 +257,7 @@ func BuildTemplate(dir string, files ...string) error {
 					t, err = getTemplate(self.root, fs, file, v...)
 				}
 				if err != nil {
-					fmt.Printf("parse template err: %v %v", file, err)
+					log.Printf("parse template err: %v %v \n", file, err)
 					templatesLock.Unlock()
 					return err
 				}
@@ -348,7 +342,7 @@ func _getTemplate(t0 *template.Template, root string, fs http.FileSystem, subMod
 					var subMods1 [][]string
 					t, subMods1, err = getTplDeep(root, fs, otherFile, "", t)
 					if err != nil {
-						fmt.Printf("template parse file err: %v \n", err)
+						log.Printf("template parse file err: %v \n", err)
 					} else if len(subMods1) > 0 {
 						t, err = _getTemplate(t, root, fs, subMods1, others...)
 					}
@@ -362,13 +356,13 @@ func _getTemplate(t0 *template.Template, root string, fs http.FileSystem, subMod
 				f, err := fs.Open(fileAbsPath)
 				if err != nil {
 					f.Close()
-					fmt.Printf("template file parse error, not success open file: %v \n", err)
+					log.Printf("template file parse error, not success open file: %v \n", err)
 					continue
 				}
 				data, err = ioutil.ReadAll(f)
 				f.Close()
 				if err != nil {
-					fmt.Printf("template file parse error, not success open file: %v \n", err)
+					log.Printf("template file parse error, not success open file: %v \n", err)
 					continue
 				}
 				reg := regexp.MustCompile(defaultDelims.Left + "[ ]*define[ ]+\"([^\"]+)\"")
@@ -378,11 +372,11 @@ func _getTemplate(t0 *template.Template, root string, fs http.FileSystem, subMod
 						var subMods1 [][]string
 						t, subMods1, err = getTplDeep(root, fs, otherFile, "", t)
 						if err != nil {
-							fmt.Printf("template parse file err: %v\n", err)
+							log.Printf("template parse file err: %v\n", err)
 						} else if len(subMods1) > 0 {
 							t, err = _getTemplate(t, root, fs, subMods1, others...)
 							if err != nil {
-								fmt.Printf("template parse file err: %v\n", err)
+								log.Printf("template parse file err: %v\n", err)
 							}
 						}
 						break

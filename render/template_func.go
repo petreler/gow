@@ -8,6 +8,21 @@ import (
 	"time"
 )
 
+
+func init() {
+	templateFuncMap["str2html"] = Str2html
+	templateFuncMap["html2str"] = HTML2str
+	templateFuncMap["datetimeformat"] = DateTimeFormat
+	templateFuncMap["date"] = DateFormat
+	templateFuncMap["int_datetimeformat"] = IntDateTimeFormat
+	templateFuncMap["int_datetime"] = IntDateTime
+	templateFuncMap["int_date"] = IntDate
+	templateFuncMap["substr"] = Substr
+	templateFuncMap["assets_js"] = AssetsJs
+	templateFuncMap["assets_css"] = AssetsCSS
+}
+
+
 //Substr Substr
 func Substr(s string, start, length int) string {
 	bt := []rune(s)

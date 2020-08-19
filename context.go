@@ -206,12 +206,6 @@ func (c *Context) ServerHTML(statusCode int, name string, data interface{}) {
 		return
 	}
 	c.Status(statusCode)
-
-	//if dev mode reBuilder template
-	if c.engine.RunMode == devMode {
-		files := []string{name}
-		render.BuildTemplate(c.engine.viewsPath, files...)
-	}
 	c.engine.HTMLRender = render.HTMLRender{}.Instance(c.engine.viewsPath, name, c.engine.FuncMap, c.engine.delims, c.engine.AutoRender, c.engine.RunMode, data)
 	err := c.engine.HTMLRender.Render(c.Writer)
 	if err != nil {
